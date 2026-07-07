@@ -96,114 +96,120 @@ page = st.sidebar.radio(
 # --------------------------------------------------
 # Helper Function
 # --------------------------------------------------
-def is_binary_feature(feature_lower):
-    return (
-        feature_lower.startswith("is")
-        or "flag" in feature_lower
-        or "running" in feature_lower
-        or "closed" in feature_lower
-        or "cta" in feature_lower
-        or "ctd" in feature_lower
-        or "cruise" in feature_lower
-        or "holiday" in feature_lower
-        or "event" in feature_lower
-    )
+def yes_no_input(label, value=0):
+    selected_option = st.selectbox(label, ["No", "Yes"], index=int(value))
+    return 1 if selected_option == "Yes" else 0
+
+
+def get_season(month):
+    if month in [12, 1, 2]:
+        return "Winter"
+    if month in [3, 4, 5]:
+        return "Spring"
+    if month in [6, 7, 8]:
+        return "Summer"
+    return "Fall"
+
+
+def default_model_inputs(feature_columns):
+    defaults = {feature: 0 for feature in feature_columns}
+    defaults.update({
+        "Month": 7,
+        "Quarter": 3,
+        "WeekOfYear": 28,
+        "DayOfWeek": "Monday",
+        "IsWeekend": 0,
+        "Season": "Summer",
+        "TempF": 80.0,
+        "Available_Rooms_For_Sale": 433.0,
+        "OOO_Rooms": 0.0,
+        "Maintenance_Rooms": 0.0,
+        "Blocked_Rooms": 0.0,
+        "ADR": 220.0,
+        "BAR_Level": 3.0,
+        "Discount_Pct": 10.0,
+        "Minimum_Stay_Nights": 1.0,
+        "Group_Rooms": 0.0,
+        "Group_Wash_Pct": 10.0,
+        "Num_Groups": 0.0,
+        "OTB_RoomsSold_14dPrior": 100.0,
+        "OTB_Occupancy_Pct_14dPrior": 70.0,
+        "Booking_Pace_Index_14d": 1.0,
+        "Avg_Comp_ADR": 215.0,
+        "CompSet_Occupancy_Pct": 70.0,
+    })
+    return defaults
 
 
 def create_input_form(feature_columns):
-    input_data = {}
+    input_data = default_model_inputs(feature_columns)
 
-    st.subheader("Enter Forecasting Inputs")
+    st.subheader("Forecast Scenario")
+    st.caption("The app asks for the main business inputs and fills the remaining model fields with editable defaults.")
 
     col1, col2, col3 = st.columns(3)
 
-    for i, feature in enumerate(feature_columns):
-        current_col = [col1, col2, col3][i % 3]
+    with col1:
+        forecast_date = st.date_input("Forecast Date")
+        input_data["ADR"] = st.number_input("Average Daily Rate (ADR)", 0.0, 1000.0, 220.0, 5.0)
+        input_data["Available_Rooms_For_Sale"] = st.number_input("Available Rooms for Sale", 0.0, 500.0, 433.0, 1.0)
+        input_data["Group_Rooms"] = st.number_input("Group Rooms", 0.0, 433.0, 0.0, 1.0)
 
-        with current_col:
-            feature_lower = feature.lower()
+    with col2:
+        input_data["OTB_RoomsSold_14dPrior"] = st.number_input("Rooms Sold 14 Days Prior", 0.0, 433.0, 100.0, 1.0)
+        input_data["OTB_Occupancy_Pct_14dPrior"] = st.number_input("Occupancy 14 Days Prior (%)", 0.0, 100.0, 70.0, 1.0)
+        input_data["Avg_Comp_ADR"] = st.number_input("Average Competitor ADR", 0.0, 1000.0, 215.0, 5.0)
+        input_data["CompSet_Occupancy_Pct"] = st.number_input("Comp Set Occupancy (%)", 0.0, 100.0, 70.0, 1.0)
 
-            if "date" in feature_lower:
-                input_data[feature] = st.date_input(feature)
+    with col3:
+        input_data["IsHoliday"] = yes_no_input("Holiday")
+        input_data["IsSpecialEvent"] = yes_no_input("Special Event")
+        input_data["Promotion_Running"] = yes_no_input("Promotion Running")
+        input_data["Discount_Pct"] = st.number_input("Discount (%)", 0.0, 100.0, 10.0, 1.0)
 
-            elif feature_lower in ["season"]:
-                input_data[feature] = st.selectbox(
-                    feature,
-                    ["Winter", "Spring", "Summer", "Fall"]
-                )
+    input_data["Month"] = forecast_date.month
+    input_data["Quarter"] = ((forecast_date.month - 1) // 3) + 1
+    input_data["WeekOfYear"] = int(forecast_date.isocalendar().week)
+    input_data["DayOfWeek"] = forecast_date.strftime("%A")
+    input_data["IsWeekend"] = 1 if forecast_date.weekday() >= 5 else 0
+    input_data["Season"] = get_season(forecast_date.month)
 
-            elif "dayofweek" in feature_lower:
-                input_data[feature] = st.selectbox(
-                    feature,
-                    ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-                )
+    with st.expander("Advanced Inputs", expanded=False):
+        adv1, adv2, adv3 = st.columns(3)
 
-            elif is_binary_feature(feature_lower):
-                selected_option = st.selectbox(feature, ["No", "Yes"])
-                input_data[feature] = 1 if selected_option == "Yes" else 0
+        with adv1:
+            input_data["TempF"] = st.number_input("Temperature (F)", 20.0, 120.0, 80.0, 1.0)
+            input_data["RainFlag"] = yes_no_input("Rain")
+            input_data["StormImpact"] = st.number_input("Storm Impact", 0.0, 10.0, 0.0, 1.0)
+            input_data["HurricaneSeasonFlag"] = yes_no_input("Hurricane Season")
 
-            elif "adr" in feature_lower:
-                input_data[feature] = st.number_input(
-                    feature,
-                    min_value=0.0,
-                    max_value=1000.0,
-                    value=220.0,
-                    step=5.0
-                )
+        with adv2:
+            input_data["OOO_Rooms"] = st.number_input("Out of Order Rooms", 0.0, 433.0, 0.0, 1.0)
+            input_data["Maintenance_Rooms"] = st.number_input("Maintenance Rooms", 0.0, 433.0, 0.0, 1.0)
+            input_data["Blocked_Rooms"] = st.number_input("Blocked Rooms", 0.0, 433.0, 0.0, 1.0)
+            input_data["Minimum_Stay_Nights"] = st.number_input("Minimum Stay Nights", 0.0, 14.0, 1.0, 1.0)
 
-            elif "occupancy" in feature_lower or "occ" in feature_lower:
-                input_data[feature] = st.number_input(
-                    feature,
-                    min_value=0.0,
-                    max_value=100.0,
-                    value=70.0,
-                    step=1.0
-                )
+        with adv3:
+            input_data["ConventionFlag"] = yes_no_input("Convention")
+            input_data["CruiseShipInPort"] = yes_no_input("Cruise Ship in Port")
+            input_data["CTA_Flag"] = yes_no_input("Closed to Arrival")
+            input_data["CTD_Flag"] = yes_no_input("Closed to Departure")
 
-            elif "rooms" in feature_lower:
-                input_data[feature] = st.number_input(
-                    feature,
-                    min_value=0.0,
-                    max_value=433.0,
-                    value=100.0,
-                    step=1.0
-                )
+        adv4, adv5, adv6 = st.columns(3)
 
-            elif "pct" in feature_lower or "discount" in feature_lower or "wash" in feature_lower:
-                input_data[feature] = st.number_input(
-                    feature,
-                    min_value=0.0,
-                    max_value=100.0,
-                    value=10.0,
-                    step=1.0
-                )
+        with adv4:
+            input_data["BAR_Level"] = st.number_input("BAR Level", 0.0, 10.0, 3.0, 1.0)
+            input_data["Group_Wash_Pct"] = st.number_input("Group Wash (%)", 0.0, 100.0, 10.0, 1.0)
 
-            elif "temp" in feature_lower:
-                input_data[feature] = st.number_input(
-                    feature,
-                    min_value=20.0,
-                    max_value=120.0,
-                    value=80.0,
-                    step=1.0
-                )
+        with adv5:
+            input_data["Num_Groups"] = st.number_input("Number of Groups", 0.0, 50.0, 0.0, 1.0)
+            input_data["Booking_Pace_Index_14d"] = st.number_input("Booking Pace Index", 0.0, 5.0, 1.0, 0.1)
 
-            elif "month" in feature_lower:
-                input_data[feature] = st.slider(feature, 1, 12, 7)
+        with adv6:
+            input_data["Days_Until_Next_Holiday"] = st.number_input("Days Until Next Holiday", 0.0, 365.0, 30.0, 1.0)
+            input_data["Weekend_Before_Holiday_Flag"] = yes_no_input("Weekend Before Holiday")
 
-            elif "quarter" in feature_lower:
-                input_data[feature] = st.slider(feature, 1, 4, 3)
-
-            elif "week" in feature_lower:
-                input_data[feature] = st.slider(feature, 1, 53, 28)
-
-            else:
-                input_data[feature] = st.number_input(
-                    feature,
-                    value=0.0,
-                    step=1.0
-                )
-
-    return pd.DataFrame([input_data])
+    return pd.DataFrame([input_data], columns=feature_columns)
 
 
 # --------------------------------------------------
