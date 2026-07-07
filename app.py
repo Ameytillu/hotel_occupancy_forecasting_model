@@ -96,6 +96,20 @@ page = st.sidebar.radio(
 # --------------------------------------------------
 # Helper Function
 # --------------------------------------------------
+def is_binary_feature(feature_lower):
+    return (
+        feature_lower.startswith("is")
+        or "flag" in feature_lower
+        or "running" in feature_lower
+        or "closed" in feature_lower
+        or "cta" in feature_lower
+        or "ctd" in feature_lower
+        or "cruise" in feature_lower
+        or "holiday" in feature_lower
+        or "event" in feature_lower
+    )
+
+
 def create_input_form(feature_columns):
     input_data = {}
 
@@ -124,18 +138,9 @@ def create_input_form(feature_columns):
                     ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
                 )
 
-            elif (
-                "flag" in feature_lower
-                or "is" in feature_lower
-                or "running" in feature_lower
-                or "closed" in feature_lower
-                or "cta" in feature_lower
-                or "ctd" in feature_lower
-                or "cruise" in feature_lower
-                or "holiday" in feature_lower
-                or "event" in feature_lower
-            ):
-                input_data[feature] = st.selectbox(feature, [0, 1])
+            elif is_binary_feature(feature_lower):
+                selected_option = st.selectbox(feature, ["No", "Yes"])
+                input_data[feature] = 1 if selected_option == "Yes" else 0
 
             elif "adr" in feature_lower:
                 input_data[feature] = st.number_input(
