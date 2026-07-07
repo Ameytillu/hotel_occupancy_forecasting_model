@@ -1,5 +1,7 @@
 # Hotel Occupancy Forecasting using Machine Learning
 
+**Note: This model is created using a synthetic hotel occupancy dataset because access to real hotel operational data is limited. The goal is to show curiosity, initiative, and the ability to build a complete revenue management forecasting workflow even when real-world hotel data is not publicly available. A second version will focus on messier, more realistic hotel data to test how forecasting patterns change under real-world conditions.**
+
 ## Project Overview
 
 Forecasting hotel occupancy accurately is one of the most important responsibilities of a Revenue Management team. Occupancy forecasts influence pricing strategies, staffing decisions, inventory management, marketing campaigns, and overall hotel profitability.
@@ -50,7 +52,7 @@ Total Records
 
 * 1,827 Daily Observations
 
-This first version of the model was created using synthetic hotel occupancy data. The synthetic dataset is useful for building the initial forecasting workflow, testing feature engineering, comparing algorithms, and validating the end-to-end model pipeline. The next model run will use messier data designed to be closer to real-world hotel data, where missing values, inconsistent patterns, operational noise, and changing demand behavior may produce different insights than the patterns observed in the synthetic dataset.
+This first version of the model is created using synthetic hotel occupancy data. The synthetic dataset is useful for building the initial forecasting workflow, testing feature engineering, comparing algorithms, and validating the end-to-end model pipeline. The second version will use messier, more realistic hotel data, where missing values, inconsistent patterns, operational noise, and changing demand behavior may produce different insights than the patterns observed in the synthetic dataset.
 
 The original dataset contains more than 140 variables covering multiple aspects of hotel operations.
 
