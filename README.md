@@ -50,6 +50,8 @@ Total Records
 
 * 1,827 Daily Observations
 
+This first version of the model was created using synthetic hotel occupancy data. The synthetic dataset is useful for building the initial forecasting workflow, testing feature engineering, comparing algorithms, and validating the end-to-end model pipeline. The next model run will use messier data designed to be closer to real-world hotel data, where missing values, inconsistent patterns, operational noise, and changing demand behavior may produce different insights than the patterns observed in the synthetic dataset.
+
 The original dataset contains more than 140 variables covering multiple aspects of hotel operations.
 
 Instead of using every available variable, this project intentionally selects only the most meaningful forecasting features. Reducing unnecessary variables improves model interpretability, reduces overfitting, minimizes data leakage, and better reflects how professional forecasting models are developed.
@@ -289,6 +291,7 @@ Some potential enhancements include:
 * Deploying the model as a Streamlit web application.
 * Creating an interactive dashboard for Revenue Managers.
 * Automating daily forecasting using scheduled data pipelines.
+* Running the next model iteration on messier, more realistic hotel data to compare how demand patterns differ from the synthetic dataset.
 
 ---
 
