@@ -17,7 +17,7 @@ st.set_page_config(
 # --------------------------------------------------
 # Paths
 # --------------------------------------------------
-PROJECT_DIR = Path(r"D:\Git Hub IMP\hotel_occupancy_forecasting")
+PROJECT_DIR = Path(__file__).resolve().parent
 MODEL_DIR = PROJECT_DIR / "models"
 
 # --------------------------------------------------
